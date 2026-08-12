@@ -10,7 +10,7 @@ services:
     environment:
       - MONGO_INITDB_DATABASE=job
     volumes:
-      - ./demo/src/main/resources/data/init.js:/docker-entrypoint-initdb.d/init.js
+      - ./job-service/src/main/resources/data/init.js:/docker-entrypoint-initdb.d/init.js
 
   spring-app:
     build:

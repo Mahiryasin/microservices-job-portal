@@ -8,7 +8,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - ../demo/src/main/resources/data/init.js:/docker-entrypoint-initdb.d/job_init.js
+      - ../job-service/src/main/resources/data/init.js:/docker-entrypoint-initdb.d/job_init.js
       - ../candidate-service/src/main/resources/data/init.js:/docker-entrypoint-initdb.d/candidate_init.js
   candidate-service:
      build: ../candidate-service
@@ -23,7 +23,7 @@ services:
     
      
   job-service:
-    build: ../demo
+    build: ../job-service
     deploy:
       replicas: 3
       resources:

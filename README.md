@@ -5,7 +5,7 @@ Bu proje, Spring Boot WebFlux ile geliştirilmiş, arka tarafta MongoDB kullanan
 ## 🚀 Proje Bileşenleri
 
 - **API Gateway (Nginx):** Gelen tüm HTTP isteklerini karşılar ve arkadaki servislere yönlendirir (Reverse Proxy). Ayrıca statik frontend dosyalarını (HTML/JS) barındırır. 
-- **Job Service (Demo):** İş ilanlarını yöneten reaktif mikroservis.
+- **Job Service:** İş ilanlarını yöneten reaktif mikroservis.
 - **Candidate Service:** Adayların (iş arayanların) bilgilerini yöneten reaktif mikroservis.
 - **MongoDB:** Tüm servislerin ortak olarak bağlandığı, ancak farklı yetkilerle (farklı veritabanları ve kullanıcılar) işlemlerini gerçekleştirdikleri NoSQL veritabanı.
 
