@@ -1,65 +1,74 @@
-# Microservices Job Portal Architecture
+# Microservices Job Portal
 
-Bu proje, Spring Boot WebFlux ile geliştirilmiş, arka tarafta MongoDB kullanan ve önünde API Gateway olarak Nginx bulunduran reaktif bir mikroservis mimarisidir.
+Reactive mikroservis mimarisi ile geliştirilmiş bir İş İlanları ve Aday Yönetim sistemi. Nginx API Gateway üzerinden servisler haberleşir.
 
-## 🚀 Proje Bileşenleri
-
-- **API Gateway (Nginx):** Gelen tüm HTTP isteklerini karşılar ve arkadaki servislere yönlendirir (Reverse Proxy). Ayrıca statik frontend dosyalarını (HTML/JS) barındırır. 
-- **Job Service:** İş ilanlarını yöneten reaktif mikroservis.
-- **Candidate Service:** Adayların (iş arayanların) bilgilerini yöneten reaktif mikroservis.
-- **MongoDB:** Tüm servislerin ortak olarak bağlandığı, ancak farklı yetkilerle (farklı veritabanları ve kullanıcılar) işlemlerini gerçekleştirdikleri NoSQL veritabanı.
-
-## 🏗 Mimari Şema
-
-Sistemin çalışma mantığı ve servisler arası iletişim mimarisi aşağıdaki gibidir:
+## 🏗 Mimari
 
 ```mermaid
 flowchart TD
-    Client((Web Tarayıcısı\nFrontend))
+    Client["🌐 Web Tarayıcısı"]
 
-    subgraph "API Gateway (Nginx :8086)"
-        Nginx[Nginx Sunucusu\nStatik Dosyalar + Proxy]
+    subgraph GW["API Gateway (Nginx :8086)"]
+        Nginx["Nginx\nReverse Proxy + Static Files"]
     end
 
-    subgraph "Microservices"
-        JobService[Job Service\nSpring WebFlux\nPort: 8012]
-        CandidateService[Candidate Service\nSpring WebFlux\nPort: 8013]
+    subgraph Services["Microservices"]
+        Job["Job Service\nSpring WebFlux\n:8012"]
+        Candidate["Candidate Service\nSpring WebFlux\n:8013"]
     end
 
-    subgraph "Database (Docker)"
-        Mongo[(MongoDB\nPort: 27017)]
-        DBJob[(db: job\nUser: mahir)]
-        DBCandidate[(db: candidate\nUser: admin)]
-        Mongo --- DBJob
-        Mongo --- DBCandidate
+    subgraph DB["MongoDB :27017"]
+        JobDB[("job DB\nuser: mahir")]
+        CandDB[("candidate DB\nuser: admin")]
     end
 
-    Client -->|HTTP GET/POST| Nginx
-    Nginx -->|/api/jobs/*| JobService
-    Nginx -->|/api/candidate/*| CandidateService
-    Nginx -.->|/| Client
-    
-    JobService -->|Reactive Mongo Driver| DBJob
-    CandidateService -->|Reactive Mongo Driver| DBCandidate
+    Client -- "GET /api/jobs/*\nPOST /api/jobs/save" --> Nginx
+    Client -- "GET /api/candidate" --> Nginx
+    Nginx --> Job
+    Nginx --> Candidate
+    Job -- "Reactive Driver" --> JobDB
+    Candidate -- "Reactive Driver" --> CandDB
+    Candidate -. "WebClient\nGET /jobs/{id}" .-> Job
 ```
 
-## 🛠 Kullanılan Teknolojiler
-- **Java 23** & **Spring Boot 3 (WebFlux)**
-- **MongoDB** (Reactive Data)
-- **Nginx** (API Gateway & Web Server)
+## 📂 Proje Yapısı
+
+```
+├── api-gateway/          # Nginx config, frontend HTML/JS, docker-compose
+│   ├── conf/nginx.conf
+│   ├── html/index.html
+│   └── docker-compose.yml
+├── job-service/          # İş ilanları servisi (Spring WebFlux + MongoDB)
+│   ├── src/
+│   ├── Dockerfile
+│   └── pom.xml
+├── candidate-service/    # Aday yönetim servisi (Spring WebFlux + MongoDB)
+│   ├── src/
+│   ├── Dockerfile
+│   └── pom.xml
+└── README.md
+```
+
+## 🛠 Teknolojiler
+- **Java 23** + **Spring Boot 3 (WebFlux)**
+- **MongoDB** (Reactive)
+- **Nginx** (API Gateway & Reverse Proxy)
 - **Docker & Docker Compose**
-- **JavaScript & Bootstrap** (Frontend)
+- **Bootstrap 4** (Frontend)
 
-## 🐳 Nasıl Çalıştırılır?
+## 🚀 Çalıştırma
 
-Projenin tamamı Docker Compose ile otomatik olarak ayağa kalkacak şekilde tasarlanmıştır.
+```bash
+cd api-gateway
+docker-compose up -d --build
+```
 
-1. API Gateway dizinine girin:
-   ```bash
-   cd api-gateway
-   ```
-2. Sistemdeki tüm konteynerleri (Nginx, Job-Service x3, Candidate-Service, MongoDB) başlatın:
-   ```bash
-   docker-compose up -d --build
-   ```
-3. Tarayıcınızdan **http://localhost:8086** adresine girerek frontend arayüzüne ulaşabilirsiniz.
+Tarayıcıdan → **http://localhost:8086**
+
+## 📡 API Endpoints
+
+| Method | URL | Açıklama |
+|--------|-----|----------|
+| GET | `/api/jobs/all` | Tüm iş ilanlarını listele |
+| POST | `/api/jobs/save` | Yeni iş ilanı ekle |
+| GET | `/api/candidate` | Tüm adayları listele |
